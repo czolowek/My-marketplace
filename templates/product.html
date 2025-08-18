@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить товар - Яйцо Маркет</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="form-section">
+        <div class="container">
+            <!-- Form Card -->
+            <div class="form-card">
+                <div class="form-header">
+                    <h1>Добавить товар</h1>
+                    <p>Создайте новое объявление в Яйцо Маркет</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline">
+                        ← Вернуться на главную
+                    </a>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }}">
+                                {{ message }}
+                                <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Form -->
+                <form method="POST" enctype="multipart/form-data" id="productForm">
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">Пароль администратора</label>
+                        <input type="password" 
+                               class="form-input" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Введите пароль"
+                               required>
+                        <div class="form-help">Защита от спама</div>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="form-group">
+                        <label for="title" class="form-label">Название товара</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="title" 
+                               name="title" 
+                               placeholder="Например: iPhone 14 Pro"
+                               maxlength="100" 
+                               required>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description" class="form-label">Описание товара</label>
+                        <textarea class="form-input form-textarea" 
+                                  id="description" 
+                                  name="description" 
+                                  rows="4" 
+                                  placeholder="Подробное описание, состояние, особенности..."
+                                  maxlength="500" 
+                                  required></textarea>
+                        <div class="form-help">Максимум 500 символов</div>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="form-group">
+                        <label for="price" class="form-label">Цена</label>
+                        <input type="text" 
+                               class="form-input" 
+                               id="price" 
+                               name="price" 
+                               placeholder="1500 ₽"
+                               maxlength="50" 
+                               required>
+                    </div>
+
+                    <!-- Multiple Images Upload -->
+                    <div class="form-group">
+                        <label for="images" class="form-label">Изображения товара (до 20 штук)</label>
+                        <div class="upload-area" onclick="document.getElementById('images').click()">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">Нажмите для выбора файлов</div>
+                            <div class="upload-subtext">JPG, PNG, GIF до 16MB каждый. Максимум 20 файлов</div>
+                        </div>
+                        <input type="file" 
+                               class="form-input d-none" 
+                               id="images" 
+                               name="images" 
+                               accept="image/*"
+                               multiple
+                               onchange="previewImages(this)">
+                        <div id="images-preview" class="images-preview d-none">
+                            <div class="preview-grid" id="preview-grid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-success w-100">
+                        Опубликовать товар
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='style.js') }}"></script>
+</body>
+</html>

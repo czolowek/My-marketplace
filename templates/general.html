@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🥚 Яйцо Маркет - by яйцо глеба</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container text-center">
+            <h1>🥚 Яйцо Маркет</h1>
+            <p>by яйцо глеба — твой личный маркетплейс</p>
+            <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                Добавить товар
+            </a>
+        </div>
+    </header>
+
+    <!-- Products Section -->
+    <section class="products-section">
+        <div class="container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }}">
+                            {{ message }}
+                            <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if products %}
+                <div class="products-grid">
+                    {% for product in products %}
+                        <div class="product-card" onclick="window.location.href='{{ url_for('product_detail', product_id=product.id) }}'">
+                            {% if product.images %}
+                                <div class="product-images">
+                                    <div class="image-gallery">
+                                        {% for image in product.images[:5] %}
+                                            <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" 
+                                                 class="gallery-image {% if loop.first %}active{% endif %}" 
+                                                 alt="{{ product.title }}">
+                                        {% endfor %}
+                                    </div>
+                                    {% if product.images|length > 1 %}
+                                        <div class="gallery-nav">
+                                            <button class="nav-btn nav-prev" onclick="event.stopPropagation(); previousImage(this)">
+                                                <i class="fas fa-chevron-left"></i>
+                                            </button>
+                                            <button class="nav-btn nav-next" onclick="event.stopPropagation(); nextImage(this)">
+                                                <i class="fas fa-chevron-right"></i>
+                                            </button>
+                                        </div>
+                                        <div class="image-counter">
+                                            <span>1</span> / {{ product.images|length }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <div class="product-image-placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="product-body">
+                                <h3 class="product-title">{{ product.title }}</h3>
+                                <p class="product-description">
+                                    {{ product.description[:120] }}{% if product.description|length > 120 %}...{% endif %}
+                                </p>
+                                <div class="product-footer">
+                                    <span class="product-price">{{ product.price }}</span>
+                                    <button class="btn btn-success" onclick="event.stopPropagation(); showContactModal()">
+                                        Купить
+                                    </button>
+                                </div>
+                                <div class="product-date">
+                                    {{ product.created_at.strftime('%d.%m.%Y') }}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">🛒</div>
+                    <h2 class="empty-title">Пока нет товаров</h2>
+                    <p class="empty-description">Станьте первым, кто добавит товар в наш маркетплейс!</p>
+                    <a href="{{ url_for('add_product') }}" class="btn btn-primary">
+                        Добавить первый товар
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal d-none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Связаться с продавцом</h3>
+                <button class="btn-close" onclick="hideContactModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Выберите удобный способ связи:</p>
+                <div class="contact-buttons">
+                    <a href="https://wa.me/48793194133" class="btn btn-success" target="_blank">
+                        <i class="fab fa-whatsapp"></i> WhatsApp: +48 793 194 133
+                    </a>
+                    <button class="btn btn-primary" onclick="copyDiscord()">
+                        <i class="fab fa-discord"></i> Discord: яйцо глеба#1234
+                    </button>
+                </div>
+                <p class="mt-2" style="font-size: 0.875rem; color: var(--text-muted);">
+                    Discord ID будет скопирован в буфер обмена
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='style.js') }}"></script>
+</body>
+</html>

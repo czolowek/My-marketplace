@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - Яйцо Маркет</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-nav">
+                <a href="{{ url_for('index') }}" class="btn btn-outline">
+                    ← Вернуться к товарам
+                </a>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showEditModal()">
+                        <i class="fas fa-edit"></i> Редактировать
+                    </button>
+                    <button class="btn btn-danger" onclick="showDeleteModal()">
+                        <i class="fas fa-trash"></i> Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Product Detail Section -->
+    <section class="product-detail-section">
+        <div class="container">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }}">
+                            {{ message }}
+                            <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="product-detail">
+                <div class="product-gallery-section">
+                    {% if product.images %}
+                        <div class="main-image-container">
+                            <img id="mainImage" 
+                                 src="{{ url_for('static', filename='uploads/' + product.images[0].filename) }}" 
+                                 alt="{{ product.title }}"
+                                 class="main-image">
+                        </div>
+                        {% if product.images|length > 1 %}
+                            <div class="thumbnail-gallery">
+                                {% for image in product.images %}
+                                    <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" 
+                                         alt="{{ product.title }}"
+                                         class="thumbnail {% if loop.first %}active{% endif %}"
+                                         onclick="changeMainImage(this)">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="no-images">
+                            <i class="fas fa-image"></i>
+                            <p>Нет изображений</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-info-section">
+                    <h1 class="product-detail-title">{{ product.title }}</h1>
+                    <div class="product-detail-price">{{ product.price }}</div>
+                    <div class="product-detail-date">
+                        <i class="fas fa-calendar"></i>
+                        Опубликовано: {{ product.created_at.strftime('%d.%m.%Y в %H:%M') }}
+                    </div>
+
+                    <div class="product-detail-description">
+                        <h3>Описание</h3>
+                        <p>{{ product.description }}</p>
+                    </div>
+
+                    <div class="contact-section">
+                        <button class="btn btn-success btn-large" onclick="showContactModal()">
+                            <i class="fas fa-phone"></i> Связаться с продавцом
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Modal -->
+    <div id="contactModal" class="modal d-none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Связаться с продавцом</h3>
+                <button class="btn-close" onclick="hideContactModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Выберите удобный способ связи:</p>
+                <div class="contact-buttons">
+                    <a href="https://wa.me/48793194133" class="btn btn-success" target="_blank">
+                        <i class="fab fa-whatsapp"></i> WhatsApp: +48 793 194 133
+                    </a>
+                    <button class="btn btn-primary" onclick="copyDiscord()">
+                        <i class="fab fa-discord"></i> Discord: яйцо глеба#1234
+                    </button>
+                </div>
+                <p class="mt-2" style="font-size: 0.875rem; color: var(--text-muted);">
+                    Discord ID будет скопирован в буфер обмена
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal d-none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Редактировать товар</h3>
+                <button class="btn-close" onclick="hideEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('edit_product', product_id=product.id) }}">
+                    <div class="form-group">
+                        <label class="form-label">Пароль администратора</label>
+                        <input type="password" name="password" class="form-input" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-primary">Перейти к редактированию</button>
+                        <button type="button" class="btn btn-outline" onclick="hideEditModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div id="deleteModal" class="modal d-none">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Удалить товар</h3>
+                <button class="btn-close" onclick="hideDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Вы уверены, что хотите удалить товар "{{ product.title }}"?</p>
+                <p class="text-danger">Это действие нельзя отменить!</p>
+                <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}">
+                    <div class="form-group">
+                        <label class="form-label">Пароль администратора</label>
+                        <input type="password" name="password" class="form-input" required>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="submit" class="btn btn-danger">Удалить товар</button>
+                        <button type="button" class="btn btn-outline" onclick="hideDeleteModal()">Отмена</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='style.js') }}"></script>
+</body>
+</html>
