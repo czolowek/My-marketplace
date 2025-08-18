@@ -36,9 +36,5 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 db.init_app(app)
 
 with app.app_context():
-    # Импортируем модели и маршруты
-    import docs.models as models
-    import docs.routes as routes
-    
-    # Создание таблиц
+
     db.create_all()
