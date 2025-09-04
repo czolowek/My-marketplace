@@ -27,14 +27,19 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # Настройка загрузки файлов
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB per file
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+app.config['UPLOAD_FOLDER'] = 'docs'
+app.config['IMAGES_FOLDER'] = os.path.join('docs', 'images')
 
-# Создание папки для загрузок
+# Создание папок для загрузок
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['IMAGES_FOLDER'], exist_ok=True)
 
 # Инициализация расширений
 db.init_app(app)
 
 with app.app_context():
-
+    # Импортируем модели и маршруты
+    import models
+    import routes
+    
     db.create_all()

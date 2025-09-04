@@ -1,4 +1,4 @@
-from docs.app import db
+from app import db
 from datetime import datetime
 
 class Product(db.Model):

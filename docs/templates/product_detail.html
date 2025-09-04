@@ -47,20 +47,25 @@
                     {% if product.images %}
                         <div class="main-image-container">
                             <img id="mainImage" 
-                                 src="{{ url_for('static', filename='uploads/' + product.images[0].filename) }}" 
+                                 src="/docs/images/{{ product.images[0].filename }}" 
                                  alt="{{ product.title }}"
                                  class="main-image">
+                            <div class="image-counter-detail">
+                                <span id="currentImageIndex">1</span> / {{ product.images|length }}
+                            </div>
                         </div>
-                        {% if product.images|length > 1 %}
+                        <div class="thumbnail-gallery-container">
                             <div class="thumbnail-gallery">
                                 {% for image in product.images %}
-                                    <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" 
-                                         alt="{{ product.title }}"
-                                         class="thumbnail {% if loop.first %}active{% endif %}"
-                                         onclick="changeMainImage(this)">
+                                    <div class="thumbnail-item {% if loop.first %}active{% endif %}" 
+                                         onclick="changeMainImage(this, {{ loop.index0 }})">
+                                        <img src="/docs/images/{{ image.filename }}" 
+                                             alt="{{ product.title }}"
+                                             class="thumbnail-image">
+                                    </div>
                                 {% endfor %}
                             </div>
-                        {% endif %}
+                        </div>
                     {% else %}
                         <div class="no-images">
                             <i class="fas fa-image"></i>
@@ -124,10 +129,10 @@
                 <button class="btn-close" onclick="hideEditModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{ url_for('edit_product', product_id=product.id) }}">
+                <form method="GET" action="{{ url_for('edit_product', product_id=product.id) }}">
                     <div class="form-group">
                         <label class="form-label">Пароль администратора</label>
-                        <input type="password" name="password" class="form-input" required>
+                        <input type="password" name="admin_check" class="form-input" required>
                     </div>
                     <div class="modal-actions">
                         <button type="submit" class="btn btn-primary">Перейти к редактированию</button>

@@ -89,7 +89,7 @@
                             <div class="current-images-grid">
                                 {% for image in product.images %}
                                     <div class="current-image-item">
-                                        <img src="{{ url_for('static', filename='uploads/' + image.filename) }}" 
+                                        <img src="/docs/images/{{ image.filename }}" 
                                              alt="{{ product.title }}"
                                              class="current-image">
                                         <div class="image-actions">
@@ -116,14 +116,15 @@
                                 <i class="fas fa-plus"></i>
                             </div>
                             <div class="upload-text">Добавить изображения</div>
-                            <div class="upload-subtext">JPG, PNG, GIF до 16MB каждый</div>
+                            <div class="upload-subtext">Зажмите Ctrl/Cmd для выбора нескольких файлов. JPG, PNG, GIF до 16MB каждый</div>
                         </div>
                         <input type="file" 
                                class="form-input d-none" 
                                id="new_images" 
                                name="new_images" 
-                               accept="image/*"
-                               multiple
+                               accept="image/*,image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                               multiple="multiple"
+                               webkitdirectory="false"
                                onchange="previewNewImages(this)">
                         <div id="new-images-preview" class="images-preview d-none">
                             <div class="preview-grid" id="new-preview-grid"></div>

@@ -41,16 +41,30 @@ function previousImage(button) {
 }
 
 // Product detail image gallery
-function changeMainImage(thumbnail) {
+function changeMainImage(thumbnailItem, index) {
     const mainImage = document.getElementById('mainImage');
-    const thumbnails = document.querySelectorAll('.thumbnail');
+    const thumbnailItems = document.querySelectorAll('.thumbnail-item');
+    const imageCounter = document.getElementById('currentImageIndex');
+    const thumbnailImg = thumbnailItem.querySelector('.thumbnail-image');
     
     // Update main image
-    mainImage.src = thumbnail.src;
+    mainImage.src = thumbnailImg.src;
     
     // Update active thumbnail
-    thumbnails.forEach(thumb => thumb.classList.remove('active'));
-    thumbnail.classList.add('active');
+    thumbnailItems.forEach(item => item.classList.remove('active'));
+    thumbnailItem.classList.add('active');
+    
+    // Update counter
+    if (imageCounter) {
+        imageCounter.textContent = index + 1;
+    }
+    
+    // Smooth scroll to show active thumbnail
+    thumbnailItem.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+    });
 }
 
 // Modal functions
@@ -163,31 +177,73 @@ function previewImages(input) {
     if (files.length > 0) {
         preview.classList.remove('d-none');
         
+        // Автоматически загружаем каждое изображение
         files.forEach((file, index) => {
             if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    const previewItem = document.createElement('div');
-                    previewItem.className = 'preview-item';
-                    previewItem.innerHTML = `
-                        <img src="${e.target.result}" class="preview-image" alt="Preview ${index + 1}">
-                        <button type="button" class="preview-remove" onclick="removePreviewImage(this, ${index})">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-                    previewGrid.appendChild(previewItem);
-                };
-                
-                reader.readAsDataURL(file);
+                uploadImageImmediately(file, index, previewGrid);
             }
         });
         
         const sizeMB = (files.reduce((total, file) => total + file.size, 0) / 1024 / 1024).toFixed(1);
-        showToast(`${files.length} изображений загружено (${sizeMB} MB)`, 'success');
+        showToast(`${files.length} изображений загружается...`, 'info');
     } else {
         preview.classList.add('d-none');
     }
+}
+
+// Upload single image immediately
+function uploadImageImmediately(file, index, previewGrid) {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    // Создаем элемент предварительного просмотра
+    const previewItem = document.createElement('div');
+    previewItem.className = 'preview-item uploading';
+    previewItem.innerHTML = `
+        <div class="upload-progress">
+            <i class="fas fa-spinner fa-spin"></i>
+            <div>Загрузка...</div>
+        </div>
+    `;
+    previewGrid.appendChild(previewItem);
+    
+    fetch('/upload_temp_image', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            previewItem.className = 'preview-item uploaded';
+            previewItem.innerHTML = `
+                <img src="${data.url}" class="preview-image" alt="Загружено ${index + 1}">
+                <div class="upload-success">
+                    <i class="fas fa-check"></i>
+                    ${data.filename}
+                </div>
+            `;
+            showToast(`Изображение ${data.filename} загружено!`, 'success');
+        } else {
+            previewItem.className = 'preview-item error';
+            previewItem.innerHTML = `
+                <div class="upload-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>Ошибка: ${data.error}</div>
+                </div>
+            `;
+            showToast(`Ошибка загрузки: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        previewItem.className = 'preview-item error';
+        previewItem.innerHTML = `
+            <div class="upload-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>Ошибка сети</div>
+            </div>
+        `;
+        showToast('Ошибка сети при загрузке', 'error');
+    });
 }
 
 // Preview new images for edit product
@@ -311,15 +367,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 showToast('Заполните все обязательные поля', 'danger');
                 return;
             }
+            
+            if (title.length < 3) {
+                e.preventDefault();
+                showToast('Название должно содержать минимум 3 символа', 'danger');
+                return;
+            }
+            
+            if (description.length < 10) {
+                e.preventDefault();
+                showToast('Описание должно содержать минимум 10 символов', 'danger');
+                return;
+            }
         });
     }
-
-    // Auto-resize textarea
-    const textareas = document.querySelectorAll('textarea');
-    textareas.forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
-    });
 });
